@@ -27,7 +27,11 @@ for list in email_list:
     for email in list:
         email_txt.write(email + "\n")
 
-email_txt.close()        
+email_txt.close()      
+
+###above code opens the empty email_txt.file, 
+###writes the contents (scraped emails separated with a new line) in a nested for loop(traversing list of lists), 
+###closes the email_txt.file
 
 
 
