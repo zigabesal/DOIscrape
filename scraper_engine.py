@@ -32,7 +32,6 @@ and returns all the email adresses scraped from the provided url
 '''
 import re
 from requests_html import HTMLSession
-from DoiToUrl import *
 #importing the re package that enables us to use regular expressions
 #importing a HTML parsing (web-scraping) library
 #importing the DoiToUrl function I wrote in a separate file that uses a online DOI resolver to access desired articles
