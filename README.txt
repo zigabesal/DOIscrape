@@ -11,7 +11,7 @@ Before using you should make sure:
 
 Python 3.0.0 or above is installed on your system
 Google Chrome is installed on your system
-These Python packages (versions used in the creation of the scripts):
+These Python packages are installed (versions used in the creation of the scripts):
 requests_html==0.10.0
 selenium==4.5.0
 webdriver_manager==3.8.3
