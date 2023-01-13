@@ -1,4 +1,4 @@
-What these two scripts do is take a text file with DOI's (sampleDOI.txt, contains DOI's) as input and populate an empty text file (email_list.txt, empty) with emails connected to the authors of the corresponding articles
+What these two scripts do is take a text file with DOI's (sampleDOI.txt, contains DOI's) as input and populate an empty text file (email_list.txt, empty) with DOI's and emails connected to the authors of the corresponding articles
 
 The scripts use a python package called Selenium, which allows direct input and manipulation of the browser engine.
 The script uses this in combination with the dx.doi.org 
