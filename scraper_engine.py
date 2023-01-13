@@ -1,14 +1,14 @@
-'''
-The function below takes as an input a DOI and returns an URL of the original article
-It does that by interacting with the input box on the dx.doi.org website via a python package called Selenium
-'''
 from selenium import webdriver
+from bs4 import BeautifulSoup
+import re
+import requests
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-###importing the needed Selenium packages
+import time
+
 
 def DoiToUrl(DOI):
-  driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+  driver = webdriver.Firefox()
   driver.get("https://dx.doi.org/")
 
   link = "https://dx.doi.org/"
@@ -21,29 +21,92 @@ def DoiToUrl(DOI):
   while(link == driver.current_url):
     time.sleep(1)
 
-  redirected_url = driver.current_url
+  url = driver.current_url
+  driver.quit()
+  return(url)
 
-  return(redirected_url)
-'''
-defining the UrlToEmails function that takes the input 
-in the form of an url 
-(e.g. "https://pubmed.ncbi.nlm.nih.gov/15447798/")(quotation marks included)
-and returns all the email adresses scraped from the provided url
-'''
-import re
-from requests_html import HTMLSession
-#importing the re package that enables us to use regular expressions
-#importing a HTML parsing (web-scraping) library
-#importing the DoiToUrl function I wrote in a separate file that uses a online DOI resolver to access desired articles
+def ScrapeUrl(url):
+    
 
-EMAIL_REGEX = r"""(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
-#most used regular expression for email addresses(copied from the internet)
+    
 
-def UrlToEmails(url):
-    session = HTMLSession()
-    r = session.get(url)
-    r.html.render()
-    elist = []
-    for re_match in re.finditer(EMAIL_REGEX, r.html.raw_html.decode()):
-        elist.append(re_match.group())
-    return elist    
+    # Using Selenium to get the page source with javascript executed
+    driver = webdriver.Firefox()
+    driver.get(url)
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # Extracting emails using BeautifulSoup
+    emails = []
+    for link in soup.find_all('a'):
+        email = link.get('href')
+        if email and 'mailto:' in email:
+            email = email.replace('mailto:', '')
+            emails.append(email)
+
+    # Collecting all links from the website
+    links = []
+    for link in soup.find_all('a'):
+        link = link.get('href')
+        if link and link.startswith(url):
+            links.append(link)
+        elif link and not link.startswith(url):
+            links.append(url+link)
+
+    # Repeat the process for all the links found in the initial page
+    for link in links:
+        try:
+            driver.get(link)
+            html = driver.page_source
+            soup = BeautifulSoup(html, 'html.parser')
+            for link in soup.find_all('a'):
+                email = link.get('href')
+                if email and 'mailto:' in email:
+                    email = email.replace('mailto:', '')
+                    emails.append(email)
+        except:
+            pass
+
+    # Removing duplicates
+    emails = list(set(emails))
+
+    
+
+    driver.quit()
+    return(emails)
+
+
+def Scrape():
+
+    
+
+    email_list = []
+    ### this list will store the scraped emails
+    DOI_list = []
+    ###this list will store the DOI numbers of the articles we want to scrape for emails
+    
+    with open("sampleDOI.txt") as f:
+        unfiltered_DOI_list = f.readlines()
+    ###these two lines of code open text files and read each separate line of the file (DOI) into a list (of unfiltered DOIs that contain whitespace)
+    for unfiltered_doi in unfiltered_DOI_list:
+        doi = unfiltered_doi.strip()
+        DOI_list.append(doi)
+    ###these three lines of code strip lines that are read from the text file of unwanted white space and store the stripped DOIs into our DOI_list
+    with open('email_list.txt') as e:
+        set_scraped = set([line.rstrip() for line in e])
+        
+        for doi in DOI_list:
+            if doi not in set_scraped:
+                url_1 = DoiToUrl(doi)
+                emails_from_doi = ScrapeUrl(url_1)
+                email_list.append(emails_from_doi)
+                
+                email_txt = open("email_list.txt", "a+")
+
+                for list in email_list:
+                    for email in list:
+                        email_txt.write(doi + "\n")
+                        email_txt.write(email + "\n")
+
+                email_txt.close()
+                email_list = []
