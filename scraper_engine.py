@@ -30,13 +30,13 @@ def ScrapeUrl(url):
 
     
 
-    # Using Selenium to get the page source with javascript executed
+    # using Selenium to get the page source with javascript executed
     driver = webdriver.Firefox()
     driver.get(url)
     html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
 
-    # Extracting emails using BeautifulSoup
+    # extracting emails using BeautifulSoup
     emails = []
     for link in soup.find_all('a'):
         email = link.get('href')
@@ -44,7 +44,7 @@ def ScrapeUrl(url):
             email = email.replace('mailto:', '')
             emails.append(email)
 
-    # Collecting all links from the website
+    # collecting all links from the website
     links = []
     for link in soup.find_all('a'):
         link = link.get('href')
@@ -53,7 +53,7 @@ def ScrapeUrl(url):
         elif link and not link.startswith(url):
             links.append(url+link)
 
-    # Repeat the process for all the links found in the initial page
+    # repeating the process for all the links found in the initial page
     for link in links:
         try:
             driver.get(link)
@@ -67,7 +67,7 @@ def ScrapeUrl(url):
         except:
             pass
 
-    # Removing duplicates
+    # removing duplicates
     emails = list(set(emails))
 
     
